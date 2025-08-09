@@ -8,14 +8,26 @@ from livekit.plugins import (
     noise_cancellation,
     google,
 )
-from prompts import AGENT_INSTRUCTION, SESSION_INSTRUCTION
+from prompt import AGENT_INSTRUCTION, SESSION_INSTRUCTION
+from tools import get_weather, search_web
 load_dotenv()
 
 
 
 class Assistant(Agent):
     def __init__(self) -> None:
-        super().__init__(instructions=AGENT_INSTRUCTION)
+        super().__init__(
+            instructions=AGENT_INSTRUCTION,
+            llm=google.beta.realtime.RealtimeModel(
+                voice="aoede",
+                temperature=0.8
+            ),
+            tools=[
+                get_weather, 
+                search_web
+                ],
+               
+        )
 
     async def run(self, message: str) -> str:
         # Mock response logic for web chatbot
@@ -31,7 +43,8 @@ class Assistant(Agent):
 async def entrypoint(ctx: agents.JobContext):
     session = AgentSession(
         llm=google.beta.realtime.RealtimeModel(
-            voice="Charon"
+            voice="aoede",
+            temperature=0.8
         )
     )
 
@@ -42,6 +55,7 @@ async def entrypoint(ctx: agents.JobContext):
             # LiveKit Cloud enhanced noise cancellation
             # - If self-hosting, omit this parameter
             # - For telephony applications, use `BVCTelephony` for best results
+            video_enabled=True,
             noise_cancellation=noise_cancellation.BVC(),
         ),
     )
